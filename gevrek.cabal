@@ -1,0 +1,78 @@
+cabal-version:   3.0
+name:            gevrek
+version:         0.1.0.0
+synopsis:        A functional programming language that compiles to Lua
+description:
+  A purely functional, statically typed programming language that compiles to Lua.
+
+license:         GPL-3.0-or-later
+license-file:    LICENSE
+author:          Berk Ozkutuk
+maintainer:      ozkutuk@protonmail.com
+category:        Language
+build-type:      Simple
+
+-- Extra doc files to be distributed with the package, such as a CHANGELOG or a README.
+extra-doc-files: CHANGELOG.md
+
+-- Extra source files to be distributed with the package, such as examples, or a tutorial module.
+-- extra-source-files:
+
+common common-extensions
+  default-extensions:
+    DerivingStrategies
+    LambdaCase
+
+  default-language:   GHC2021
+
+common warnings
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wpartial-fields
+    -Wredundant-constraints -fhide-source-paths -fshow-hole-constraints
+    -Wunused-packages
+
+library
+  import:
+    warnings
+    , common-extensions
+
+  hs-source-dirs:  src
+  exposed-modules:
+    AST
+    Lua.AST
+
+  -- Modules included in this library but not exported.
+  -- other-modules:
+
+  build-depends:
+    , base  ^>=4.17.2.0
+    , text
+    , prettyprinter
+
+executable gevrek
+  import:
+    warnings
+    , common-extensions
+
+  main-is:        Main.hs
+  hs-source-dirs: app
+
+  -- Modules included in this executable, other than Main.
+  -- other-modules:
+
+  build-depends:
+    , base    ^>=4.17.2.0
+    , gevrek
+    , text
+
+test-suite gevrek-test
+  import:
+    warnings
+    , common-extensions
+
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is:        Main.hs
+  build-depends:
+    , base    ^>=4.17.2.0
+    , gevrek

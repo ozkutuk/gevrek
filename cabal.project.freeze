@@ -1,0 +1,17 @@
+active-repositories: hackage.haskell.org:merge
+constraints: any.array ==0.5.4.0,
+             any.base ==4.17.2.0,
+             any.binary ==0.8.9.1,
+             any.bytestring ==0.11.5.1,
+             any.containers ==0.6.7,
+             any.deepseq ==1.4.8.0,
+             any.ghc-bignum ==1.3,
+             any.ghc-boot-th ==9.4.6,
+             any.ghc-prim ==0.9.1,
+             any.pretty ==1.1.3.6,
+             any.prettyprinter ==1.7.1,
+             prettyprinter -buildreadme +text,
+             any.rts ==1.0.2,
+             any.template-haskell ==2.19.0.0,
+             any.text ==2.0.2
+index-state: hackage.haskell.org 2023-08-29T04:47:22Z
