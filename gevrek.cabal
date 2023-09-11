@@ -40,6 +40,9 @@ library
   exposed-modules:
     AST
     Lua.AST
+    Lua.Pretty
+    Core
+    CoreToLua
 
   -- Modules included in this library but not exported.
   -- other-modules:

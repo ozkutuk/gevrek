@@ -2,7 +2,10 @@ module Lua.AST where
 
 import Data.Text (Text)
 
-newtype Program = Program {unProgram :: [Declaration]}
+data Program = Program
+  { decls :: [Declaration]
+  , main :: Maybe Statement
+  }
 
 data Declaration
   = DeclFun FunDecl
@@ -22,3 +25,4 @@ data Statement
 data Expr
   = Lit Int
   | Var Var
+  | FunCall Text [Expr]
