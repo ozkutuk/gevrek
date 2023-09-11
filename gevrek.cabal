@@ -39,18 +39,18 @@ library
   hs-source-dirs:  src
   exposed-modules:
     AST
-    Lua.AST
-    Lua.Pretty
     Core
     CoreToLua
+    Lua.AST
+    Lua.Pretty
 
   -- Modules included in this library but not exported.
   -- other-modules:
 
   build-depends:
-    , base  ^>=4.17.2.0
-    , text
+    , base           ^>=4.17.2.0
     , prettyprinter
+    , text
 
 executable gevrek
   import:

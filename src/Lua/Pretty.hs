@@ -3,10 +3,10 @@
 
 module Lua.Pretty where
 
-import Lua.AST (Declaration (..), FunDecl (..), Program (..), Statement (..), Expr (..))
+import Data.Text (Text)
+import Lua.AST (Declaration (..), Expr (..), FunDecl (..), Program (..), Statement (..))
 import Prettyprinter (Doc, (<+>))
 import Prettyprinter qualified as PP
-import Data.Text (Text)
 import Prettyprinter.Render.Text qualified as PP
 
 render :: Program -> Text
@@ -15,7 +15,7 @@ render = PP.renderStrict . PP.layoutPretty PP.defaultLayoutOptions . prettyProgr
 prettyProgram :: Program -> Doc ann
 prettyProgram program =
   PP.vsep (map prettyDecl program.decls)
-  <> maybe mempty (((PP.line <> PP.line) <>) . prettyStatement) program.main
+    <> maybe mempty (((PP.line <> PP.line) <>) . prettyStatement) program.main
 
 prettyDecl :: Declaration -> Doc ann
 prettyDecl (DeclFun funDecl) = prettyFunDecl funDecl
