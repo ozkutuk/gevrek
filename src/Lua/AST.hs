@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Lua.AST where
 
 import Data.Text (Text)
@@ -9,6 +11,7 @@ data Program = Program
 
 data Declaration
   = DeclFun FunDecl
+  | DeclVal ValDecl
 
 type Var = Text
 
@@ -18,11 +21,27 @@ data FunDecl = FunDecl
   , body :: [Statement]
   }
 
+data ValDecl = ValDecl
+  { name :: Text
+  , value :: Expr
+  }
+
 data Statement
   = Return Expr
   | ExprStmt Expr
+  | DeclStmt Declaration
 
 data Expr
-  = Lit Int
+  = Lit Lit
   | Var Var
-  | FunCall Text [Expr]
+  | FunCall Expr [Expr]
+  | Fun [Text] Expr
+  -- is this _really_ an expression?
+  -- maybe I can rename the datatype to AST or
+  -- something other than Expr...
+  | Block [Statement]
+  -- | LetBlock [Declaration] Expr
+
+data Lit
+  = LitInt Int
+  | LitBool Bool

@@ -4,7 +4,7 @@
 module Lua.Pretty where
 
 import Data.Text (Text)
-import Lua.AST (Declaration (..), Expr (..), FunDecl (..), Program (..), Statement (..))
+import Lua.AST (Declaration (..), Expr (..), FunDecl (..), Program (..), Statement (..), ValDecl (..), Lit (..))
 import Prettyprinter (Doc, (<+>))
 import Prettyprinter qualified as PP
 import Prettyprinter.Render.Text qualified as PP
@@ -19,6 +19,11 @@ prettyProgram program =
 
 prettyDecl :: Declaration -> Doc ann
 prettyDecl (DeclFun funDecl) = prettyFunDecl funDecl
+prettyDecl (DeclVal valDecl) = prettyValDecl valDecl
+
+prettyValDecl :: ValDecl -> Doc ann
+prettyValDecl (ValDecl name value) =
+  PP.pretty name <+> PP.equals <+> prettyExpr value
 
 prettyFunDecl :: FunDecl -> Doc ann
 prettyFunDecl fun =
@@ -33,9 +38,24 @@ prettyFunDecl fun =
 prettyStatement :: Statement -> Doc ann
 prettyStatement (Return e) = "return" <+> prettyExpr e
 prettyStatement (ExprStmt e) = prettyExpr e
+prettyStatement (DeclStmt decl) = prettyDecl decl
 
 prettyExpr :: Expr -> Doc ann
-prettyExpr (Lit n) = PP.pretty n
+prettyExpr (Lit lit) = prettyLit lit 
 prettyExpr (Var v) = PP.pretty v
 prettyExpr (FunCall fun args) =
-  PP.pretty fun <> PP.tupled (map prettyExpr args)
+  PP.parens (prettyExpr fun) <> PP.tupled (map prettyExpr args)
+prettyExpr (Fun params body) =
+  PP.vsep
+    [ "function"
+        <> PP.tupled (map PP.pretty params)
+    , PP.indent 4 (prettyExpr body)
+    , "end"
+    ]
+prettyExpr (Block stmts) = PP.vsep (map prettyStatement stmts)
+
+prettyLit :: Lit -> Doc ann
+prettyLit (LitInt n) = PP.pretty n
+prettyLit (LitBool True) = "true"
+prettyLit (LitBool False) = "false"
+

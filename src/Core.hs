@@ -2,14 +2,17 @@ module Core where
 
 import Data.Text (Text)
 
-data Core a
+data Expr a
   = Var Text
   | Lit Lit
-  | App (Core a) (Core a)
-  | Lam a (Core a)
-  | Let (Bind a) (Core a)
+  | App (Expr a) (Expr a)
+  | Lam a (Expr a)
+  | Let (Bind a) (Expr a)
 
 data Lit
   = LitInt Int
+  | LitBool Bool
 
-data Bind a = Bind a (Core a)
+data Bind a = Bind a (Expr a)
+
+newtype Module = Module {unModule :: [Bind Text]}
