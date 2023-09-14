@@ -4,7 +4,7 @@
 module Lua.Pretty where
 
 import Data.Text (Text)
-import Lua.AST (Declaration (..), Expr (..), FunDecl (..), Program (..), Statement (..), ValDecl (..), Lit (..))
+import Lua.AST (Declaration (..), Expr (..), FunDecl (..), Lit (..), Program (..), Statement (..), ValDecl (..))
 import Prettyprinter (Doc, (<+>))
 import Prettyprinter qualified as PP
 import Prettyprinter.Render.Text qualified as PP
@@ -22,7 +22,10 @@ prettyDecl (DeclFun funDecl) = prettyFunDecl funDecl
 prettyDecl (DeclVal valDecl) = prettyValDecl valDecl
 
 prettyValDecl :: ValDecl -> Doc ann
-prettyValDecl (ValDecl name value) =
+prettyValDecl (ValDecl name value) = prettyAssign name value
+
+prettyAssign :: Text -> Expr -> Doc ann
+prettyAssign name value =
   PP.pretty name <+> PP.equals <+> prettyExpr value
 
 prettyFunDecl :: FunDecl -> Doc ann
@@ -41,7 +44,7 @@ prettyStatement (ExprStmt e) = prettyExpr e
 prettyStatement (DeclStmt decl) = prettyDecl decl
 
 prettyExpr :: Expr -> Doc ann
-prettyExpr (Lit lit) = prettyLit lit 
+prettyExpr (Lit lit) = prettyLit lit
 prettyExpr (Var v) = PP.pretty v
 prettyExpr (FunCall fun args) =
   PP.parens (prettyExpr fun) <> PP.tupled (map prettyExpr args)
@@ -53,9 +56,16 @@ prettyExpr (Fun params body) =
     , "end"
     ]
 prettyExpr (Block stmts) = PP.vsep (map prettyStatement stmts)
+prettyExpr (Table items) = PP.braces $ PP.tupled $ map (uncurry prettyAssign) items
+prettyExpr (If cond body) =
+  PP.vsep
+    [ "if" <+> prettyExpr cond <+> "then"
+    , PP.indent 4 (prettyExpr body)
+    , "end"
+    ]
+prettyExpr (Equals e1 e2) = prettyExpr e1 <+> "==" <+> prettyExpr e2
 
 prettyLit :: Lit -> Doc ann
 prettyLit (LitInt n) = PP.pretty n
 prettyLit (LitBool True) = "true"
 prettyLit (LitBool False) = "false"
-

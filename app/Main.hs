@@ -11,13 +11,19 @@ import Data.Text.IO qualified as T
 --   , Program (..)
 --   , Statement (..)
 --   )
+
+import Core
+  ( Bind (..)
+  , Binder (..)
+  , CaseAlternative (..)
+  , Expr (..)
+  , Lit (..)
+  , Module (..)
+  )
+import CoreToLua (coreToLua)
+import Data.Text (Text)
 import Lua.Pretty (render)
 import System.Environment (getArgs)
-import Core (Module(..))
-import Core (Bind(..))
-import Core (Expr(..))
-import Core (Lit(..))
-import CoreToLua (coreToLua)
 
 coreModule :: Module
 coreModule =
@@ -32,16 +38,47 @@ coreModule =
             Var "x"
     ]
 
+coreModule2 :: Module
+coreModule2 =
+  Module
+    [ Bind "isOne" $
+        Lam "num" $
+          Case
+            (Var "num")
+            [ CaseAlternative (LitBinder (LitInt 1)) (Lit (LitBool True))
+            , CaseAlternative WildcardBinder (Lit (LitBool False))
+            ]
+    , Bind "foo" $
+        Lam "n" $
+          Case
+            (Var "n")
+            [ CaseAlternative (LitBinder (LitInt 1)) (Lit (LitInt 0))
+            , CaseAlternative (LitBinder (LitInt 2)) (Lit (LitInt 5))
+            , CaseAlternative
+                (VarBinder "n")
+                (App (App (Var "add") (Var "n")) (Var "n"))
+            ]
+    ]
+
 -- program :: Program
 -- program =
 --   Program
 --     [DeclFun (FunDecl "main" ["x", "y"] [Return (Var "x")])]
 --     (Just (ExprStmt (FunCall "main" [Lit 42, Lit 24])))
 
+compile :: Module -> Text
+compile = render . coreToLua
+
+compileWithPrelude :: Module -> IO Text
+compileWithPrelude md = do
+  let compiled = compile md
+  prelude <- T.readFile "Prelude.lua"
+  pure $ prelude <> "\n" <> compiled
+
 main :: IO ()
 main = do
   -- T.putStrLn $ render program
-  T.putStrLn $ render $ coreToLua coreModule
+  T.putStrLn =<< compileWithPrelude coreModule2
 
 -- args <- getArgs
 -- let f = head args

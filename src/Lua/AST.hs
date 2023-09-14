@@ -36,11 +36,14 @@ data Expr
   | Var Var
   | FunCall Expr [Expr]
   | Fun [Text] Expr
-  -- is this _really_ an expression?
-  -- maybe I can rename the datatype to AST or
-  -- something other than Expr...
-  | Block [Statement]
-  -- | LetBlock [Declaration] Expr
+  | -- is this _really_ an expression?
+    -- maybe I can rename the datatype to AST or
+    -- something other than Expr...
+    Block [Statement]
+  | -- | LetBlock [Declaration] Expr
+    Table [(Text, Expr)]
+  | If Expr Expr
+  | Equals Expr Expr
 
 data Lit
   = LitInt Int

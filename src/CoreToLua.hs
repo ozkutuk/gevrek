@@ -1,6 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module CoreToLua where
 
-import Core (Bind (..), Expr (..), Lit (..), Module (..))
+import Core (Bind (..), Binder (..), CaseAlternative (..), Expr (..), Lit (..), Module (..))
 import Data.Text (Text)
 import Lua.AST qualified as Lua
 
@@ -20,8 +22,34 @@ exprToLua (Let bind e) =
   let e' = exprToLua e
       bind' = bindToLua bind
    in Lua.FunCall
-        (Lua.Fun []
-          (Lua.Block [Lua.DeclStmt bind', Lua.Return e'])) []
+        ( Lua.Fun
+            []
+            (Lua.Block [Lua.DeclStmt bind', Lua.Return e'])
+        )
+        []
+exprToLua (Case scrutinee cases) =
+  Lua.FunCall
+    ( Lua.Fun
+        [scrutineeVar]
+        (Lua.Block $ map (Lua.ExprStmt . caseAltToLua) cases)
+    )
+    [exprToLua scrutinee]
+
+caseAltToLua :: CaseAlternative Text -> Lua.Expr
+caseAltToLua (CaseAlternative binder result) = case binder of
+  WildcardBinder -> Lua.Block [Lua.Return (exprToLua result)]
+  VarBinder var ->
+    Lua.Block
+      [ Lua.DeclStmt (Lua.DeclVal (Lua.ValDecl var (Lua.Var scrutineeVar)))
+      , Lua.Return (exprToLua result)
+      ]
+  LitBinder lit ->
+    Lua.If
+      (Lua.Equals (Lua.Var scrutineeVar) (Lua.Lit (litToLua lit)))
+      (Lua.Block [Lua.Return (exprToLua result)])
+
+scrutineeVar :: Text
+scrutineeVar = "__scrutinee"
 
 litToLua :: Lit -> Lua.Lit
 litToLua (LitInt n) = Lua.LitInt n
