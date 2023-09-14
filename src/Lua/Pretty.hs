@@ -3,6 +3,7 @@
 
 module Lua.Pretty where
 
+import Data.List (intersperse)
 import Data.Text (Text)
 import Lua.AST (Declaration (..), Expr (..), FunDecl (..), Lit (..), Program (..), Statement (..), ValDecl (..))
 import Prettyprinter (Doc, (<+>))
@@ -14,7 +15,7 @@ render = PP.renderStrict . PP.layoutPretty PP.defaultLayoutOptions . prettyProgr
 
 prettyProgram :: Program -> Doc ann
 prettyProgram program =
-  PP.vsep (map prettyDecl program.decls)
+  PP.vsep (intersperse mempty $ map prettyDecl program.decls)
     <> maybe mempty (((PP.line <> PP.line) <>) . prettyStatement) program.main
 
 prettyDecl :: Declaration -> Doc ann
