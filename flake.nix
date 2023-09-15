@@ -3,16 +3,22 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
   outputs = inputs @ {
     self,
     nixpkgs,
     flake-parts,
+    treefmt-nix,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = nixpkgs.lib.systems.flakeExposed;
-      imports = [inputs.haskell-flake.flakeModule];
+      imports = [
+        inputs.haskell-flake.flakeModule
+        inputs.treefmt-nix.flakeModule
+      ];
 
       perSystem = {
         self',
@@ -53,11 +59,14 @@
 
             # Programs you want to make available in the shell.
             # Default programs can be disabled by setting to 'null'
-            tools = hp: {
-              fourmolu = hp.fourmolu;
-              cabal-fmt = hp.cabal-fmt;
-              ghcid = null;
-            };
+            tools = hp:
+              {
+                fourmolu = hp.fourmolu;
+                cabal-fmt = hp.cabal-fmt;
+                ghcid = null;
+                treefmt = config.treefmt.build.wrapper;
+              }
+              // config.treefmt.build.programs;
 
             hlsCheck.enable = true;
           };
@@ -74,7 +83,19 @@
           ];
         };
 
-        formatter = pkgs.alejandra;
+        # formatter = pkgs.alejandra;
+
+        treefmt.config = {
+          projectRootFile = "flake.nix";
+          package = pkgs.treefmt;
+
+          programs.ormolu.enable = true;
+          programs.alejandra.enable = true;
+          programs.cabal-fmt.enable = true;
+
+          # We use fourmolu
+          programs.ormolu.package = pkgs.haskellPackages.fourmolu;
+        };
 
         # haskell-flake doesn't set the default package, but you can do it here.
         packages.default = self'.packages.gevrek;
