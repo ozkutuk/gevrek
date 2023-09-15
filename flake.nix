@@ -61,7 +61,7 @@
             # Default programs can be disabled by setting to 'null'
             tools = hp: {ghcid = null;};
 
-            hlsCheck.enable = true;
+            hlsCheck.enable = false;
           };
 
           autoWire = ["packages" "apps" "checks"]; # Wire all but the devShell
