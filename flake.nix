@@ -59,14 +59,7 @@
 
             # Programs you want to make available in the shell.
             # Default programs can be disabled by setting to 'null'
-            tools = hp:
-              {
-                fourmolu = hp.fourmolu;
-                cabal-fmt = hp.cabal-fmt;
-                ghcid = null;
-                treefmt = config.treefmt.build.wrapper;
-              }
-              // config.treefmt.build.programs;
+            tools = hp: {ghcid = null;};
 
             hlsCheck.enable = true;
           };
@@ -78,12 +71,13 @@
           inputsFrom = [
             config.haskellProjects.default.outputs.devShell
           ];
-          nativeBuildInputs = [
-            pkgs.lua5_4
-          ];
+          nativeBuildInputs =
+            [
+              pkgs.lua5_4
+              config.treefmt.build.wrapper
+            ]
+            ++ builtins.attrValues config.treefmt.build.programs;
         };
-
-        # formatter = pkgs.alejandra;
 
         treefmt.config = {
           projectRootFile = "flake.nix";
