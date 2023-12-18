@@ -21,7 +21,9 @@ import Core
   , Module (..)
   )
 import CoreToLua (coreToLua)
+import Data.Maybe (fromJust)
 import Data.Text (Text)
+import Data.Text qualified as T
 import Debug.Trace (traceShow)
 import Lua.Pretty (render)
 import Parser (ParseError (..), parse)
@@ -68,6 +70,11 @@ import System.Environment (getArgs)
 --     [DeclFun (FunDecl "main" ["x", "y"] [Return (Var "x")])]
 --     (Just (ExprStmt (FunCall "main" [Lit 42, Lit 24])))
 
+modulize :: String -> Expr Text -> Module
+modulize fname e = Module [Bind binder e]
+  where
+    binder = fromJust $ T.stripSuffix ".gevrek" (T.pack fname)
+
 compile :: Module -> Text
 compile = render . coreToLua
 
@@ -86,8 +93,9 @@ main = do
   case eParsed of
     Left e -> T.putStrLn (unParseError e)
     Right parsed ->
-      traceShow parsed $
-        T.putStrLn =<< compileWithPrelude parsed
+      let module_ = modulize f parsed
+       in traceShow parsed $
+            T.putStrLn =<< compileWithPrelude module_
 
 -- args <- getArgs
 -- let f = head args

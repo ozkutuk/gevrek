@@ -2,12 +2,14 @@
 
 module Parser where
 
--- import AST (Expr (..), Lit (..), Bind(..))
-
-import Control.Applicative (empty, (<**>), (<|>))
-import Core (Bind (..), Expr (..), Lit (..), Module (..))
+import Control.Applicative (empty, (<|>))
+import Control.Monad (guard)
+import Core (Bind (..), Expr (..), Lit (..))
 import Data.Bifunctor (first)
+import Data.Foldable (foldl')
 import Data.Functor (void)
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Void (Void)
@@ -20,29 +22,29 @@ type Parser = MP.Parsec Void Text
 
 newtype ParseError = ParseError {unParseError :: Text}
 
-parse :: Text -> Either ParseError Module
-parse = first (ParseError . T.pack . MP.errorBundlePretty) . MP.runParser parseModule ""
+parse :: Text -> Either ParseError (Expr Text)
+parse = first (ParseError . T.pack . MP.errorBundlePretty) . MP.runParser (parseExpr <* MP.eof) ""
 
-chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
-chainl1 p op = scan
-  where
-    scan = p <**> rst
-    rst = (\f y g x -> g (f x y)) <$> op <*> p <*> rst <|> pure id
-{-# INLINE chainl1 #-}
-
--- NOTE(ozkutuk): probably should generalize this to 'Expr a'
--- at some point
 parseExpr :: Parser (Expr Text)
-parseExpr = chainl1 parseExpr' (App <$ hwhitespace)
-
-parseExpr' :: Parser (Expr Text)
-parseExpr' =
-  lit
-    <|> (parseLambda <?> "lambda expression")
+parseExpr =
+  (parseLambda <?> "lambda expression")
     <|> (parseLet <?> "let expression")
-    <|> (Var <$> parseIdent)
-  where
-    lit = Lit <$> parseLit
+    <|> parseApp
+
+parseApp :: Parser (Expr Text)
+parseApp = do
+  firstPrim <- lexeme prim
+  rest <- MP.many (lexeme prim)
+  pure $ foldl' App firstPrim rest
+
+parens :: Parser a -> Parser a
+parens = MP.between (symbol "(") (symbol ")")
+
+prim :: Parser (Expr Text)
+prim =
+  Var <$> parseIdent
+    <|> Lit <$> parseLit
+    <|> parens parseExpr
 
 parseLet :: Parser (Expr Text)
 parseLet = do
@@ -52,7 +54,7 @@ parseLet = do
   Let bind <$> parseExpr
 
 keyword :: Text -> Parser ()
-keyword s = void $ lexeme' $ MP.try (MPC.string s *> MP.notFollowedBy MPC.alphaNumChar)
+keyword s = void $ lexeme $ MP.try (MPC.string s *> MP.notFollowedBy MPC.alphaNumChar)
 
 parseLambda :: Parser (Expr Text)
 parseLambda = do
@@ -61,9 +63,17 @@ parseLambda = do
   void $ lexeme (MPC.string "->")
   Lam binder <$> parseExpr
 
--- TODO(ozkutuk): actually implement this, take care of keywords
+keywords :: Set Text
+keywords =
+  Set.fromList
+    ["let", "in"]
+
+-- TODO(ozkutuk): this needs to accept alphanum, underscores, etc.
 parseIdent :: Parser Text
-parseIdent = T.pack <$> lexeme (MP.some MPC.letterChar) <?> "identifier"
+parseIdent = MP.try $ do
+  ident <- T.pack <$> lexeme (MP.some MPC.letterChar) <?> "identifier"
+  guard $ ident `Set.notMember` keywords
+  pure ident
 
 parseLit :: Parser Lit
 parseLit = (parseBool <?> "boolean") <|> parseInt
@@ -81,20 +91,12 @@ parseBind = do
   void $ lexeme (MPC.char '=')
   Bind name <$> parseExpr
 
-parseModule :: Parser Module
-parseModule =
-  Module
-    <$> MP.someTill (lexeme' parseBind) MP.eof
-
 lexeme :: Parser a -> Parser a
-lexeme = MPL.lexeme hwhitespace
+lexeme = MPL.lexeme whitespace
 
-lexeme' :: Parser a -> Parser a
-lexeme' = MPL.lexeme whitespace
+symbol :: Text -> Parser Text
+symbol = MPL.symbol whitespace
 
 -- NOTE(ozkutuk): no comments for now
 whitespace :: Parser ()
 whitespace = MPL.space MPC.space1 empty empty
-
-hwhitespace :: Parser ()
-hwhitespace = MPL.space MPC.hspace1 empty empty
