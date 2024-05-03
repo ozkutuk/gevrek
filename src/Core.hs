@@ -28,7 +28,7 @@ data Binder a
 data Lit
   = LitInt Int
   | LitBool Bool
-  deriving (Show)
+  deriving (Eq, Show)
 
 data Bind a = Bind a (Expr a)
   deriving (Show)

@@ -5,12 +5,15 @@
     haskell-flake.url = "github:srid/haskell-flake";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    nil.url = "github:oxalica/nil";
+    nil.inputs.nixpkgs.follows = "nixpkgs";
   };
   outputs = inputs @ {
     self,
     nixpkgs,
     flake-parts,
     treefmt-nix,
+    nil,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
@@ -70,13 +73,12 @@
         devShells.default = pkgs.mkShell {
           inputsFrom = [
             config.haskellProjects.default.outputs.devShell
+            config.treefmt.build.devShell
           ];
-          nativeBuildInputs =
-            [
-              pkgs.lua5_4
-              config.treefmt.build.wrapper
-            ]
-            ++ builtins.attrValues config.treefmt.build.programs;
+          nativeBuildInputs = [
+            pkgs.lua5_4
+            pkgs.nil
+          ];
         };
 
         treefmt.config = {
@@ -86,6 +88,7 @@
           programs.ormolu.enable = true;
           programs.alejandra.enable = true;
           programs.cabal-fmt.enable = true;
+          programs.hlint.enable = true;
 
           # We use fourmolu
           programs.ormolu.package = pkgs.haskellPackages.fourmolu;

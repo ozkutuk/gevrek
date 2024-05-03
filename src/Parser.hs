@@ -21,9 +21,13 @@ import Text.Megaparsec.Char.Lexer qualified as MPL
 type Parser = MP.Parsec Void Text
 
 newtype ParseError = ParseError {unParseError :: Text}
+  deriving stock (Eq, Show)
 
 parse :: Text -> Either ParseError (Expr Text)
-parse = first (ParseError . T.pack . MP.errorBundlePretty) . MP.runParser (parseExpr <* MP.eof) ""
+parse = parse' (parseExpr <* MP.eof)
+
+parse' :: Parser a -> Text -> Either ParseError a
+parse' p = first (ParseError . T.pack . MP.errorBundlePretty) . MP.runParser p ""
 
 parseExpr :: Parser (Expr Text)
 parseExpr =

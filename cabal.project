@@ -1,0 +1,6 @@
+packages:
+  .
+
+with-compiler: ghc-9.4.6
+
+test-show-details: direct
