@@ -1,6 +1,6 @@
 packages:
   .
 
-with-compiler: ghc-9.4.6
+with-compiler: ghc-9.6.5
 
 test-show-details: direct
