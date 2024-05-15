@@ -1,0 +1,10 @@
+file = expr
+
+expr = "let" ident "=" expr "in" expr
+     | "\" ident "->" expr
+     | prim *prim
+
+prim = ident | bool | int | "(" expr ")"
+
+bool = "true" | "false"
+

@@ -44,6 +44,8 @@ library
     Lua.AST
     Lua.Pretty
     Parser
+    Token
+    Lexer
 
   -- Modules included in this library but not exported.
   -- other-modules:
