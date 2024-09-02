@@ -22,6 +22,8 @@ common common-extensions
   default-extensions:
     DerivingStrategies
     LambdaCase
+    OverloadedRecordDot
+    DuplicateRecordFields
 
   default-language:   GHC2021
 

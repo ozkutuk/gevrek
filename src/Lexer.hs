@@ -41,6 +41,8 @@ token =
     <|> MPC.char '=' $> TokEquals
     <|> MPC.char '\\' $> TokBackslash
     <|> MPC.string "->" $> TokRightArrow
+    <|> MPC.char '(' $> TokLeftParen
+    <|> MPC.char ')' $> TokRightParen
     -- <|> MP.eof $> TokEof
     <|> MPC.char '{' $> TokLeftBrace
     <|> MPC.char '}' $> TokRightBrace

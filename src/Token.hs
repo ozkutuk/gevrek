@@ -1,6 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Token where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 
 -- TODO(ozkutuk): add parens
 data Token
@@ -14,9 +17,30 @@ data Token
   | TokEquals
   | TokBackslash
   | TokRightArrow
+  | TokLeftParen
+  | TokRightParen
   | TokEof
   -- Layout
   | TokLeftBrace
   | TokRightBrace
   | TokSemicolon
-  deriving stock (Eq, Show)
+  deriving stock (Eq, Ord, Show)
+
+showToken :: Token -> Text
+showToken = \case
+  TokIdent ident -> ident
+  TokNumber number -> T.pack (show number)
+  TokOperator op -> op
+  TokCase -> "case"
+  TokOf -> "of"
+  TokLet -> "let"
+  TokIn -> "in"
+  TokEquals -> "="
+  TokBackslash -> "\\"
+  TokRightArrow -> "->"
+  TokLeftParen -> "("
+  TokRightParen -> ")"
+  TokEof -> "EOF"
+  TokLeftBrace -> "{"
+  TokRightBrace -> "}"
+  TokSemicolon -> ";"

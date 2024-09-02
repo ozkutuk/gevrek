@@ -26,7 +26,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Debug.Trace (traceShow)
 import Lua.Pretty (render)
-import Parser (ParseError (..), parse)
+import Parser (ParseError (..), parse, showError, unsafeParse)
 import System.Environment (getArgs)
 
 -- coreModule :: Module
@@ -89,13 +89,13 @@ main = do
   args <- getArgs
   let f = head args
   program <- T.readFile f
-  let eParsed = parse program
+  let eParsed = unsafeParse program
   case eParsed of
-    Left e -> T.putStrLn (unParseError e)
-    Right parsed ->
-      let module_ = modulize f parsed
-       in traceShow parsed $
-            T.putStrLn =<< compileWithPrelude module_
+    Left e -> T.putStrLn (showError e)
+    Right module_ ->
+      -- let module_ = modulize f parsed
+      -- in traceShow parsed $
+      T.putStrLn =<< compileWithPrelude module_
 
 -- args <- getArgs
 -- let f = head args
