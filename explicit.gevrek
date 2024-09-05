@@ -1,11 +1,13 @@
 {
-  succ = add 1;
 
-  pred = \x -> sub x 1
+succ = add 1;
 
--- weirdFun = \val -> case val of {
---   10 -> succ 10;
---   other -> pred other
--- }
+pred = \x -> sub x 1;
+
+weirdFun = \val -> case val of {
+  10 -> succ 10;
+  other -> pred other;
+  _ -> 4
+}
 
 }

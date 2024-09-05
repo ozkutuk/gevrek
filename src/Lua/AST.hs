@@ -30,6 +30,7 @@ data Statement
   = Return Expr
   | ExprStmt Expr
   | DeclStmt Declaration
+  | DoBlock [Statement]
 
 data Expr
   = Lit Lit

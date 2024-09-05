@@ -42,6 +42,12 @@ prettyStatement :: Statement -> Doc ann
 prettyStatement (Return e) = "return" <+> prettyExpr e
 prettyStatement (ExprStmt e) = prettyExpr e
 prettyStatement (DeclStmt decl) = prettyDecl decl
+prettyStatement (DoBlock stmts) =
+  PP.vsep
+    [ "do"
+    , PP.indent 4 $ PP.vsep (map prettyStatement stmts)
+    , "end"
+    ]
 
 prettyExpr :: Expr -> Doc ann
 prettyExpr (Lit lit) = prettyLit lit

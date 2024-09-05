@@ -35,13 +35,18 @@ exprToLua (Case scrutinee cases) =
     )
     [exprToLua scrutinee]
 
+wrapDoBlock :: Lua.Statement -> Lua.Statement
+wrapDoBlock x = Lua.DoBlock [x]
+
 caseAltToLua :: CaseAlternative Text -> Lua.Expr
 caseAltToLua (CaseAlternative binder result) = case binder of
-  WildcardBinder -> Lua.Block [Lua.Return (exprToLua result)]
+  WildcardBinder -> Lua.Block [wrapDoBlock $ Lua.Return (exprToLua result)]
   VarBinder var ->
     Lua.Block
-      [ Lua.DeclStmt (Lua.DeclVal (Lua.ValDecl var (Lua.Var scrutineeVar)))
-      , Lua.Return (exprToLua result)
+      [ Lua.DoBlock
+          [ Lua.DeclStmt (Lua.DeclVal (Lua.ValDecl var (Lua.Var scrutineeVar)))
+          , Lua.Return (exprToLua result)
+          ]
       ]
   LitBinder lit ->
     Lua.If

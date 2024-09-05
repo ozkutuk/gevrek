@@ -2,7 +2,16 @@ file = expr
 
 expr = "let" ident "=" expr "in" expr
      | "\" ident "->" expr
+     | "case" expr "of" casealts
      | prim *prim
+
+casealts = "{" casealts-in "}"
+
+casealts-in = casealt *casealt
+
+casealt = binder "->" expr
+
+binder = "_" | ident | bool | int
 
 prim = ident | bool | int | "(" expr ")"
 

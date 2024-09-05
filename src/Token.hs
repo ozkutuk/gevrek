@@ -19,6 +19,7 @@ data Token
   | TokRightArrow
   | TokLeftParen
   | TokRightParen
+  | TokUnderscore
   | TokEof
   -- Layout
   | TokLeftBrace
@@ -40,6 +41,7 @@ showToken = \case
   TokRightArrow -> "->"
   TokLeftParen -> "("
   TokRightParen -> ")"
+  TokUnderscore -> "_"
   TokEof -> "EOF"
   TokLeftBrace -> "{"
   TokRightBrace -> "}"

@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Parser where
 
-import Control.Applicative (empty, (<|>), Alternative)
+import Control.Applicative (Alternative, empty, (<|>))
 import Control.Monad (guard, (>=>))
-import Core (Bind (..), Expr (..), Lit (..), Module (..))
+import Core (Bind (..), Binder (..), CaseAlternative (..), Expr (..), Lit (..), Module (..))
 import Data.Bifunctor (first)
 import Data.Foldable (foldl')
 import Data.Functor (void, ($>))
@@ -18,13 +18,13 @@ import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Void (Void)
+import Lexer qualified
 import Text.Megaparsec ((<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Megaparsec.Char.Lexer qualified as MPL
 import Token (Token (..))
 import Token qualified
-import qualified Lexer
 
 data WithPos a = WithPos
   { startPos :: MP.SourcePos
@@ -94,10 +94,11 @@ instance MP.TraversableStream TokenStream where
   reachOffset o MP.PosState {..} =
     ( Just $ T.unpack (prefix <> restOfLine)
     , MP.PosState
-        { pstateInput = TokenStream
-            { input = postStr
-            , tokens = post
-            }
+        { pstateInput =
+            TokenStream
+              { input = postStr
+              , tokens = post
+              }
         , pstateOffset = max pstateOffset o
         , pstateSourcePos = newSourcePos
         , pstateTabWidth = pstateTabWidth
@@ -115,7 +116,7 @@ instance MP.TraversableStream TokenStream where
           [] -> case pstateInput.tokens of
             [] -> pstateSourcePos
             xs -> endPos (last xs)
-          (x:_) -> startPos x
+          (x : _) -> startPos x
       (pre, post) = splitAt (o - pstateOffset) pstateInput.tokens
       (preStr, postStr) = T.splitAt tokensConsumed pstateInput.input
       preLine = T.reverse . T.takeWhile (/= '\n') . T.reverse $ preStr
@@ -171,9 +172,10 @@ parseModule = Module <$> parseBlockItems parseBind
 parseExpr :: Parser (Expr Text)
 parseExpr =
   (parseLambda <?> "lambda expression")
-  <|> (parseLet <?> "let expression")
-  <|> (parseApp <?> "application")
-  <|> prim
+    <|> (parseLet <?> "let expression")
+    <|> (parseCase <?> "case expression")
+    <|> (parseApp <?> "application")
+    <|> prim
 
 parseLambda :: Parser (Expr Text)
 parseLambda = do
@@ -200,6 +202,31 @@ parseBind = do
   name <- ident
   void $ token TokEquals
   Bind name <$> parseExpr
+
+parseCase :: Parser (Expr Text)
+parseCase = do
+  void $ token TokCase
+  scrutinee <- parseExpr
+  void $ token TokOf
+  Case scrutinee <$> parseCaseAlts
+
+parseCaseAlts :: Parser [CaseAlternative Text]
+parseCaseAlts = parseBlockItems parseCaseAlt
+
+parseCaseAlt :: Parser (CaseAlternative Text)
+parseCaseAlt = do
+  binder <- parseBinder
+  void $ token TokRightArrow
+  CaseAlternative binder <$> parseExpr
+
+wildcard :: Parser (Binder a)
+wildcard = (token TokUnderscore <?> "wildcard") $> WildcardBinder
+
+parseBinder :: Parser (Binder Text)
+parseBinder =
+  wildcard
+    <|> LitBinder <$> parseLit
+    <|> VarBinder <$> ident
 
 parseLit :: Parser Lit
 parseLit = LitInt <$> number
@@ -231,11 +258,13 @@ unsafeParse src =
 -- parse :: TokenStream -> Either ParseError (Expr Text)
 parse :: TokenStream -> Either ParseError Module
 parse = parse' (parseModule <* eof)
+
 -- parse = parse' (parseExpr <* token TokEof)
 -- parse = parse' (parseExpr <* MP.eof)
 
 parse' :: Parser a -> TokenStream -> Either ParseError a
 parse' p = first (ParseError . T.pack . MP.errorBundlePretty) . MP.runParser p ""
+
 --
 -- parseExpr :: Parser (Expr Text)
 -- parseExpr =

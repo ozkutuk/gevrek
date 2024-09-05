@@ -43,6 +43,7 @@ token =
     <|> MPC.string "->" $> TokRightArrow
     <|> MPC.char '(' $> TokLeftParen
     <|> MPC.char ')' $> TokRightParen
+    <|> MPC.char '_' $> TokUnderscore
     -- <|> MP.eof $> TokEof
     <|> MPC.char '{' $> TokLeftBrace
     <|> MPC.char '}' $> TokRightBrace
