@@ -12,4 +12,16 @@ sub = function(x)
   end
 end
 
+div = function(x)
+  return function(y)
+    return x / y
+  end
+end
+
+mul = function(x)
+  return function(y)
+    return x * y
+  end
+end
+
 -- END OF PRELUDE

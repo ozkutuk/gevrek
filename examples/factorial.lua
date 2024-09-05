@@ -26,20 +26,18 @@ end
 
 -- END OF PRELUDE
 
-identity = (function()
-    s = function(x)
-        return function(y)
-            return function(z)
-                return ((x)(z))((y)(z))
-            end
-        end
+factorial = (function()
+    pred = function(n)
+        return ((sub)(n))(1)
     end
-    return (function()
-        k = function(x)
-            return function(y)
-                return x
+    return function(n)
+        return (function(__scrutinee)
+            if __scrutinee == 0 then
+                return 1
             end
-        end
-        return ((s)(k))(k)
-    end)()
+            do
+                return ((mul)(n))((factorial)((pred)(n)))
+            end
+        end)(n)
+    end
 end)()

@@ -1,0 +1,10 @@
+{
+
+  factorial =
+    let pred = \n -> sub n 1
+     in \n -> case n of {
+       0 -> 1;
+       _ -> mul n (factorial (pred n))
+     }
+
+}

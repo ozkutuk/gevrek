@@ -1,8 +1,0 @@
-{
-
-weirdFun = \val -> case val of {
-  _ -> 4;
-  _ -> 3
-}
-
-}

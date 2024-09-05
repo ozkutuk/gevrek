@@ -1,6 +1,9 @@
-let
-  s = \x -> \y -> \z -> x z (y z)
-in let
-  k = \x -> \y -> x
-in
-  s k k
+{
+  identity =
+    let
+      s = \x -> \y -> \z -> x z (y z)
+    in let
+      k = \x -> \y -> x
+    in
+      s k k
+}
