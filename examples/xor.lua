@@ -44,3 +44,13 @@ end
 
 
 -- END OF PRELUDE
+
+xor = function(x)
+    return function(y)
+        return ((and_)(((or_)(x))(y)))(((or_)((not_)(x)))((not_)(y)))
+    end
+end
+
+tt = ((xor)(true))(true)
+
+ft = ((xor)(false))(true)

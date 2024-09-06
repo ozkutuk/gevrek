@@ -5,6 +5,8 @@ module CoreToLua where
 import Core (Bind (..), Binder (..), CaseAlternative (..), Expr (..), Lit (..), Module (..))
 import Data.Text (Text)
 import Lua.AST qualified as Lua
+import qualified Data.Text as T
+import qualified Data.Set as Set
 
 coreToLua :: Module -> Lua.Program
 coreToLua (Module binds) = Lua.Program (map bindToLua binds) Nothing
@@ -13,7 +15,7 @@ bindToLua :: Bind Text -> Lua.Declaration
 bindToLua (Bind ident expr) = Lua.DeclVal (Lua.ValDecl ident (exprToLua expr))
 
 exprToLua :: Expr Text -> Lua.Expr
-exprToLua (Var var) = Lua.Var var
+exprToLua (Var var) = Lua.Var (escapeReserved var)
 exprToLua (Lit lit) = Lua.Lit (litToLua lit)
 -- TODO(ozkutuk): something to be done about currying/multiple args etc
 exprToLua (App e1 e2) = Lua.FunCall (exprToLua e1) [exprToLua e2]
@@ -34,6 +36,18 @@ exprToLua (Case scrutinee cases) =
         (Lua.Block $ map (Lua.ExprStmt . caseAltToLua) cases)
     )
     [exprToLua scrutinee]
+
+escapeReserved :: Lua.Var -> Lua.Var
+escapeReserved var =
+  if var `Set.member` luaReserved
+    then escape var
+    else var
+  where
+    escape :: Lua.Var -> Lua.Var
+    escape v = T.snoc v '_'
+
+luaReserved :: Set.Set Lua.Var
+luaReserved = Set.fromList [ "and", "or", "not" ]
 
 wrapDoBlock :: Lua.Statement -> Lua.Statement
 wrapDoBlock x = Lua.DoBlock [x]

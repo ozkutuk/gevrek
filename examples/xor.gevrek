@@ -1,0 +1,9 @@
+{
+
+  xor = \x -> \y -> and (or x y) (or (not x) (not y));
+
+  tt = xor true true;
+
+  ft = xor false true
+
+}
