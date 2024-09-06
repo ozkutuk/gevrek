@@ -41,6 +41,7 @@ token =
     <|> MPC.char '=' $> TokEquals
     <|> MPC.char '\\' $> TokBackslash
     <|> MPC.string "->" $> TokRightArrow
+    <|> MPC.string ":" $> TokColon
     <|> MPC.char '(' $> TokLeftParen
     <|> MPC.char ')' $> TokRightParen
     <|> MPC.char '_' $> TokUnderscore
@@ -49,17 +50,31 @@ token =
     <|> MPC.char '}' $> TokRightBrace
     <|> MPC.char ';' $> TokSemicolon
     <|> number
+    <|> bool
     <|> ident
+    <|> typ
     <|> operator
 
 number :: Lexer Token
 number = TokNumber <$> MPL.decimal
+
+bool :: Lexer Token
+bool =
+  fmap TokBool $
+    (MPC.string "True" $> True)
+      <|> (MPC.string "False" $> False)
 
 ident :: Lexer Token
 ident = do
   hd <- MPC.lowerChar
   tl <- many MPC.alphaNumChar
   pure $ TokIdent $ Text.pack (hd : tl)
+
+typ :: Lexer Token
+typ = do
+  hd <- MPC.upperChar
+  tl <- many MPC.alphaNumChar
+  pure $ TokType $ Text.pack (hd : tl)
 
 operator :: Lexer Token
 operator = TokOperator . Text.pack <$> some symbolChar

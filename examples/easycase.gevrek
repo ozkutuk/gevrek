@@ -1,0 +1,9 @@
+{
+
+  doubleIfTen = \(n : Number) ->
+    case n of {
+      10 -> 20;
+      other -> other
+    }
+
+}

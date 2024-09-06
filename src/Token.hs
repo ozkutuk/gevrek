@@ -8,7 +8,9 @@ import qualified Data.Text as T
 -- TODO(ozkutuk): add parens
 data Token
   = TokIdent Text
+  | TokType Text
   | TokNumber Int
+  | TokBool Bool
   | TokOperator Text
   | TokCase
   | TokOf
@@ -17,6 +19,7 @@ data Token
   | TokEquals
   | TokBackslash
   | TokRightArrow
+  | TokColon
   | TokLeftParen
   | TokRightParen
   | TokUnderscore
@@ -30,7 +33,9 @@ data Token
 showToken :: Token -> Text
 showToken = \case
   TokIdent ident -> ident
+  TokType typ -> typ
   TokNumber number -> T.pack (show number)
+  TokBool bool -> T.pack (show bool)
   TokOperator op -> op
   TokCase -> "case"
   TokOf -> "of"
@@ -39,6 +44,7 @@ showToken = \case
   TokEquals -> "="
   TokBackslash -> "\\"
   TokRightArrow -> "->"
+  TokColon -> ":"
   TokLeftParen -> "("
   TokRightParen -> ")"
   TokUnderscore -> "_"

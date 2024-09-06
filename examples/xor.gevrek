@@ -1,9 +1,9 @@
 {
 
-  xor = \x -> \y -> and (or x y) (or (not x) (not y));
+  xor = \(x : Bool) -> \(y : Bool) -> and (or x y) (or (not x) (not y));
 
-  tt = xor true true;
+  tt = xor True True;
 
-  ft = xor false true
+  ft = xor False True
 
 }

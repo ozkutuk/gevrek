@@ -19,7 +19,7 @@ exprToLua (Var var) = Lua.Var (escapeReserved var)
 exprToLua (Lit lit) = Lua.Lit (litToLua lit)
 -- TODO(ozkutuk): something to be done about currying/multiple args etc
 exprToLua (App e1 e2) = Lua.FunCall (exprToLua e1) [exprToLua e2]
-exprToLua (Lam x e) = Lua.Fun [x] (Lua.Block [Lua.Return (exprToLua e)])
+exprToLua (Lam x _ e) = Lua.Fun [x] (Lua.Block [Lua.Return (exprToLua e)])
 exprToLua (Let bind e) =
   let e' = exprToLua e
       bind' = bindToLua bind

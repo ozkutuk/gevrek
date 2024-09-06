@@ -4,16 +4,15 @@
 
 module Parser where
 
-import Control.Applicative (Alternative, empty, (<|>))
-import Control.Monad (guard, (>=>))
-import Core (Bind (..), Binder (..), CaseAlternative (..), Expr (..), Lit (..), Module (..))
+import Control.Applicative (Alternative, (<|>))
+import Control.Monad (guard)
+import Core (Bind (..), Binder (..), CaseAlternative (..), Expr (..), Lit (..), Module (..), Ty (..))
 import Data.Bifunctor (first)
 import Data.Foldable (foldl')
 import Data.Functor (void, ($>))
 import Data.List qualified as List
 import Data.List.NonEmpty qualified as NE
 import Data.Proxy (Proxy (..))
-import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -21,8 +20,6 @@ import Data.Void (Void)
 import Lexer qualified
 import Text.Megaparsec ((<?>))
 import Text.Megaparsec qualified as MP
-import Text.Megaparsec.Char qualified as MPC
-import Text.Megaparsec.Char.Lexer qualified as MPL
 import Token (Token (..))
 import Token qualified
 
@@ -151,6 +148,12 @@ number = MP.token test Set.empty <?> "number"
     test (WithPos _ _ _ (TokNumber n)) = Just n
     test _ = Nothing
 
+bool :: Parser Bool
+bool = MP.token test Set.empty <?> "bool"
+  where
+    test (WithPos _ _ _ (TokBool b)) = Just b
+    test _ = Nothing
+
 ident :: Parser Text
 ident = MP.token test Set.empty <?> "identifier"
   where
@@ -180,9 +183,28 @@ parseExpr =
 parseLambda :: Parser (Expr Text)
 parseLambda = do
   void $ token TokBackslash
+  void $ token TokLeftParen
   binder <- ident
+  void $ token TokColon
+  ty <- parseType
+  void $ token TokRightParen
   void $ token TokRightArrow
-  Lam binder <$> parseExpr
+  Lam binder ty <$> parseExpr
+
+parseType :: Parser Ty
+parseType = MP.try parseFunType <|> parsePrimType
+
+parsePrimType :: Parser Ty
+parsePrimType =
+  (token (TokType "Bool") <?> "Bool type") $> Bool
+    <|> (token (TokType "Number") <?> "Number type") $> Number
+    <|> parens parseType
+
+parseFunType :: Parser Ty
+parseFunType = do
+  t1 <- parsePrimType
+  void $ token TokRightArrow
+  Fun t1 <$> parseType
 
 parseApp :: Parser (Expr Text)
 parseApp = do
@@ -229,7 +251,7 @@ parseBinder =
     <|> VarBinder <$> ident
 
 parseLit :: Parser Lit
-parseLit = LitInt <$> number
+parseLit = LitInt <$> number <|> LitBool <$> bool
 
 prim :: Parser (Expr Text)
 prim =

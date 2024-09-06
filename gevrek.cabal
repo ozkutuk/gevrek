@@ -21,9 +21,9 @@ extra-doc-files: CHANGELOG.md
 common common-extensions
   default-extensions:
     DerivingStrategies
+    DuplicateRecordFields
     LambdaCase
     OverloadedRecordDot
-    DuplicateRecordFields
 
   default-language:   GHC2021
 
@@ -43,11 +43,12 @@ library
     AST
     Core
     CoreToLua
+    Lexer
     Lua.AST
     Lua.Pretty
     Parser
     Token
-    Lexer
+    Typecheck
 
   -- Modules included in this library but not exported.
   -- other-modules:

@@ -6,10 +6,13 @@ data Expr a
   = Var Text
   | Lit Lit
   | App (Expr a) (Expr a)
-  | Lam a (Expr a)
+  | Lam a Ty (Expr a)
   | Let (Bind a) (Expr a)
   | Case (Expr a) [CaseAlternative a]
   deriving (Show)
+
+data Ty = Bool | Number | Fun Ty Ty
+  deriving stock (Eq, Ord, Show)
 
 data CaseAlternative a = CaseAlternative
   { binder :: Binder a
